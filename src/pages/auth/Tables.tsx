@@ -1,17 +1,33 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchTables } from "../../api/tables";
-import { TableCard, type Table } from "../../components/TableCard";
+import { TableCard, type Order, type Table } from "../../components/TableCard";
 import { Typography, Container, CircularProgress } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { router } from "../../router";
+import { fetchOrders } from "../../api/orders";
 
 export default function Tables() {
-  const { data, isLoading, error } = useQuery({
+  const {
+    data: tables,
+    isLoading: loadingTables,
+    error: errorTables,
+    isSuccess,
+  } = useQuery({
     queryKey: ["tables"],
     queryFn: fetchTables,
   });
 
-  if (isLoading)
+  const {
+    data: orders,
+    isLoading: loadingOrders,
+    error: errorOrders,
+  } = useQuery({
+    queryKey: ["orders"],
+    queryFn: fetchOrders,
+    enabled: isSuccess && !!tables,
+  });
+
+  if (loadingTables || loadingOrders)
     return (
       <Container sx={{ mt: 10, textAlign: "center" }}>
         <CircularProgress />
@@ -19,7 +35,7 @@ export default function Tables() {
       </Container>
     );
 
-  if (error)
+  if (errorTables || errorOrders)
     return <Typography color="error">Error loading tables :c</Typography>;
 
   return (
@@ -28,13 +44,16 @@ export default function Tables() {
         Tables
       </Typography>
       <Grid container spacing={2}>
-        {data?.map((table: Table) => (
+        {tables?.map((table: Table) => (
           <Grid size={{ xs: 6, sm: 4, md: 3 }} key={table.id}>
             <TableCard
               table={table}
-              onClick={() => {
-                router.navigate({ to: `/order/${table.id}` });
-              }}
+              order={orders.find((o: Order) => o.table === table.id)}
+              onClick={() =>
+                table.status === "available"
+                  ? router.navigate({ to: `/takeOrder/${table.id}` })
+                  : router.navigate({ to: `/tableOrder/${table.id}` })
+              }
             />
           </Grid>
         ))}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "@tanstack/react-router";
 import { fetchProducts, type Product } from "../../api/products";
 import { createOrder } from "../../api/orders";
@@ -19,8 +19,9 @@ import {
 import { updateTableStatus } from "../../api/tables";
 import Products from "../../components/Products";
 
-export default function Order() {
-  const { tableId } = useParams({ from: "/order/$tableId" });
+export default function TakeOrder() {
+  const { tableId } = useParams({ from: "/takeOrder/$tableId" });
+  const queryClient = useQueryClient();
   const [totalPrice, setTotalPrice] = useState(0);
   const [items, setItems] = useState<
     { id: number; quantity: number; name: string; price: number }[]
@@ -56,12 +57,16 @@ export default function Order() {
 
   const mutation = useMutation({
     mutationFn: async () => {
-      await createOrder(Number(tableId), items);
+      await createOrder(
+        Number(tableId),
+        items.map((i) => i.id)
+      );
       await updateTableStatus(Number(tableId), "occupied");
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       alert("Order sent!");
       setItems([]);
+      await queryClient.invalidateQueries({ queryKey: ["orders"] });
       router.navigate({ to: `/tables` });
     },
   });

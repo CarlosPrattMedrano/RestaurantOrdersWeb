@@ -1,4 +1,4 @@
-import type { Table } from "../components/TableCard";
+
 import api from "./client";
 // const DUMMY_TABLES: Table[] = [
 //   { id: 1, number: 1, status: "free" },
@@ -26,3 +26,4 @@ export async function updateTableStatus(id: number, status: "occupied" | "availa
   const response = await api.patch(`/tables/${id}/`, { status });
   return response.status;
 }
+

@@ -9,7 +9,9 @@ import Login from "./pages/Login";
 import Tables from "./pages/auth/Tables";
 import { getAuthStatus } from "./api/auth";
 import { useQuery } from "@tanstack/react-query";
-import Order from "./pages/auth/Order";
+import TakeOrder from "./pages/auth/TakeOrder";
+import Orders from "./pages/auth/Orders";
+import { TableOrder } from "./pages/auth/TableOrder";
 
 export function useAuthQuery() {
   return useQuery({
@@ -75,23 +77,49 @@ const tablesRoute = createRoute({
   component: Tables,
 });
 
-const orderRoute = createRoute({
+const takeOrderRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/order/$tableId",
+  path: "/takeOrder/$tableId",
   beforeLoad: async () => {
     const { isAuthenticated } = await getAuthStatus();
     if (!isAuthenticated) {
       throw redirect({ to: "/login" });
     }
   },
-  component: Order,
+  component: TakeOrder,
+});
+
+const tableOrderRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/tableOrder/$tableId",
+  beforeLoad: async () => {
+    const { isAuthenticated } = await getAuthStatus();
+    if (!isAuthenticated) {
+      throw redirect({ to: "/login" });
+    }
+  },
+  component: TableOrder,
+});
+
+const orderRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/orders",
+  beforeLoad: async () => {
+    const { isAuthenticated } = await getAuthStatus();
+    if (!isAuthenticated) {
+      throw redirect({ to: "/login" });
+    }
+  },
+  component: Orders,
 });
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
   tablesRoute,
+  takeOrderRoute,
   orderRoute,
+  tableOrderRoute,
   // protectedRoute.addChildren([tablesRoute, orderRoute]),
 ]);
 
