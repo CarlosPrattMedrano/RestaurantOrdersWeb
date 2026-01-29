@@ -7,6 +7,7 @@ import {
   fetchOrders,
   payOrder,
   updateOrderStatus,
+  type Order,
   type OrderItem,
   type OrderStatus,
 } from "../../api/orders";
@@ -25,7 +26,6 @@ import {
 } from "@mui/material";
 import { updateTableStatus } from "../../api/tables";
 import Products from "../../components/Products";
-import type { Order } from "../../components/TableCard";
 import { TakeOrderButtons } from "../../components/TakeOrderButtons";
 import { UpdateOrderStatusButtons } from "../../components/UpdateOrderButtons";
 
@@ -95,21 +95,6 @@ export default function TakeOrder() {
     },
   });
 
-  // const mutationUpdateOrder = useMutation({
-  //   mutationFn: async () => {
-  //     await updateOrder(
-  //       Number(tableId),
-  //       items.map((i) => i.id),
-  //     );
-  //     await updateOrderStatus(tableOrder.id, "pending");
-  //   },
-  //   onSuccess: async () => {
-  //     alert("Order updated!");
-  //     setItems([]);
-  //     await queryClient.invalidateQueries({ queryKey: ["orders"] });
-  //     router.navigate({ to: `/tables` });
-  //   },
-  // });
   const mutationFinishOrder = useMutation({
     mutationFn: async () => {
       await payOrder(tableOrder.id);
@@ -196,7 +181,6 @@ export default function TakeOrder() {
           })}
         </List>
       </Paper>
-      {/* Total price area */}
       <Grid container justifyContent="space-between" sx={{ mt: 2, mb: 3 }}>
         <Typography variant="h5" fontWeight={600}>
           Total:

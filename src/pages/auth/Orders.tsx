@@ -1,10 +1,9 @@
 import Container from "@mui/material/Container";
-import { fetchOrders } from "../../api/orders";
+import { fetchOrders, type Order } from "../../api/orders";
 import Typography from "@mui/material/Typography";
 import CircularProgress from "@mui/material/CircularProgress";
 import { useQuery } from "@tanstack/react-query";
 import { OrderCard } from "../../components/OrderCard";
-import type { Order } from "../../components/TableCard";
 import Grid from "@mui/material/Grid";
 
 ///List of table orders
