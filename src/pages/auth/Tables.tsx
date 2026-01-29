@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchTables } from "../../api/tables";
-import { TableCard, type Order, type Table } from "../../components/TableCard";
+import { TableCard, type Table } from "../../components/TableCard";
 import { Typography, Container, CircularProgress } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { router } from "../../router";
-import { fetchOrders } from "../../api/orders";
+import { fetchOrders, type Order } from "../../api/orders";
 
 export default function Tables() {
   const {

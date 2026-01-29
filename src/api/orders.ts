@@ -1,6 +1,14 @@
 
 import api from "./client";
 
+export interface Order {
+  id: number;
+  table: number;
+  status: string;
+  products: OrderItem[];
+  total: number;
+  paid_at?: string;
+}
 
 export interface OrderItem {
   productId: number;

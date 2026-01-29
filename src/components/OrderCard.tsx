@@ -1,7 +1,6 @@
 import { Card, CardActionArea, CardContent, Typography } from "@mui/material";
-import type { Order } from "./TableCard";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { updateOrderStatus } from "../api/orders";
+import { updateOrderStatus, type Order } from "../api/orders";
 
 const statusStyles = {
   pending: {

@@ -1,17 +1,10 @@
 import { Card, CardActionArea, CardContent, Typography } from "@mui/material";
-import type { OrderItem } from "../api/orders";
+import type { Order } from "../api/orders";
 
 export interface Table {
   id: number;
   status: string;
   number: number;
-}
-export interface Order {
-  id: number;
-  table: number;
-  status: string;
-  products: OrderItem[];
-  total: number;
 }
 
 interface TableCardProps {

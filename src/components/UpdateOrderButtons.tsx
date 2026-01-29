@@ -23,25 +23,6 @@ export function UpdateOrderStatusButtons({
   console.log("UpdateOrderStatusButtons items", orderId);
   return (
     <Grid container spacing={2} sx={{ mt: 2 }}>
-      {/* <Button
-        variant="contained"
-        color="success"
-        fullWidth
-        // onClick={() => mutation()}
-        disabled={isPending || items.length === 0}
-        sx={{
-          fontSize: "1.3rem",
-          fontWeight: "bold",
-          py: 1.5,
-          transition: "all 0.3s ease",
-          "&:hover": {
-            transform: "scale(1.05)",
-            boxShadow: "0 8px 20px rgba(0,0,0,0.2)",
-          },
-        }}
-      >
-        {isPending ? "Sending..." : "Update Order"}
-      </Button> */}
       {status === "served" ? null : (
         <Button
           variant="contained"
