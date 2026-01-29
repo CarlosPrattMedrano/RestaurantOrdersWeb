@@ -51,7 +51,7 @@ export function OrderCard({ order }: { order: Order }) {
           <Typography variant="body1"></Typography>
           {order.products.map((product, index) => (
             <Typography key={index}>
-              {product.name} - ${product.price}
+              {product.name} - ${product.price} x{product.quantity}
             </Typography>
           ))}
           <Typography variant="body2">Status: {order.status}</Typography>

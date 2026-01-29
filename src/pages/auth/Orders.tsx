@@ -18,7 +18,6 @@ export default function Orders() {
     queryFn: fetchOrders,
   });
 
-  console.log("orders", orders);
   if (loadingOrders)
     return (
       <Container sx={{ mt: 10, textAlign: "center" }}>
@@ -29,7 +28,6 @@ export default function Orders() {
 
   if (errorOrders)
     return <Typography color="error">Error loading orders :c</Typography>;
-
   return (
     <Container sx={{ mt: 4 }}>
       <Typography variant="h4" gutterBottom>

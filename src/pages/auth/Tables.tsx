@@ -26,7 +26,6 @@ export default function Tables() {
     queryFn: fetchOrders,
     enabled: isSuccess && !!tables,
   });
-
   if (loadingTables || loadingOrders)
     return (
       <Container sx={{ mt: 10, textAlign: "center" }}>
@@ -38,6 +37,13 @@ export default function Tables() {
   if (errorTables || errorOrders)
     return <Typography color="error">Error loading tables :c</Typography>;
 
+  const clickTable = (table: Table) => {
+    if (table.status === "available") {
+      router.navigate({ to: `/takeOrder/${table.id}` });
+    } else {
+      router.navigate({ to: `/takeOrder/${table.id}` });
+    }
+  };
   return (
     <Container sx={{ mt: 4 }}>
       <Typography variant="h4" gutterBottom>
@@ -49,11 +55,7 @@ export default function Tables() {
             <TableCard
               table={table}
               order={orders.find((o: Order) => o.table === table.id)}
-              onClick={() =>
-                table.status === "available"
-                  ? router.navigate({ to: `/takeOrder/${table.id}` })
-                  : router.navigate({ to: `/tableOrder/${table.id}` })
-              }
+              onClick={() => clickTable(table)}
             />
           </Grid>
         ))}

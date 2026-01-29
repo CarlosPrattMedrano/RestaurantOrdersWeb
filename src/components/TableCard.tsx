@@ -1,5 +1,5 @@
 import { Card, CardActionArea, CardContent, Typography } from "@mui/material";
-import type { Product } from "../api/products";
+import type { OrderItem } from "../api/orders";
 
 export interface Table {
   id: number;
@@ -10,7 +10,7 @@ export interface Order {
   id: number;
   table: number;
   status: string;
-  products: Product[];
+  products: OrderItem[];
   total: number;
 }
 
@@ -45,8 +45,6 @@ const tableOrderStyles = {
   },
 };
 export function TableCard({ table, order, onClick }: TableCardProps) {
-  console.log("order", order);
-
   const getTableOrderStyles = () => {
     if (table.status === "available") {
       return tableOrderStyles.available;
@@ -67,7 +65,6 @@ export function TableCard({ table, order, onClick }: TableCardProps) {
           ? {}
           : {
               transform: "scale(1.05)",
-              // transform: "translateY(-5px)",
               boxShadow: "0 8px 20px rgba(0,0,0,0.2)",
             },
       }}

@@ -12,6 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import TakeOrder from "./pages/auth/TakeOrder";
 import Orders from "./pages/auth/Orders";
 import { TableOrder } from "./pages/auth/TableOrder";
+import { HistoryOrders } from "./pages/auth/HistoryOrders";
 
 export function useAuthQuery() {
   return useQuery({
@@ -113,6 +114,18 @@ const orderRoute = createRoute({
   component: Orders,
 });
 
+const historyOrdersRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/historyorders",
+  beforeLoad: async () => {
+    const { isAuthenticated } = await getAuthStatus();
+    if (!isAuthenticated) {
+      throw redirect({ to: "/login" });
+    }
+  },
+  component: HistoryOrders,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
@@ -120,6 +133,7 @@ const routeTree = rootRoute.addChildren([
   takeOrderRoute,
   orderRoute,
   tableOrderRoute,
+  historyOrdersRoute,
   // protectedRoute.addChildren([tablesRoute, orderRoute]),
 ]);
 

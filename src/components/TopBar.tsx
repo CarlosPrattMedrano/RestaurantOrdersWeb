@@ -23,7 +23,6 @@ const bounceButtonStyle = {
 export default function TopBar() {
   const { data } = useAuthQuery();
   const queryClient = useQueryClient();
-  console.log("User data in TopBar:", data);
 
   const mutation = useMutation({
     mutationFn: logout,
@@ -64,8 +63,9 @@ export default function TopBar() {
           <Button
             variant="contained"
             color="primary"
-            disabled
-            onClick={() => router.navigate({ to: "/orders", replace: true })}
+            onClick={() =>
+              router.navigate({ to: "/historyorders", replace: true })
+            }
             sx={bounceButtonStyle}
           >
             History Orders

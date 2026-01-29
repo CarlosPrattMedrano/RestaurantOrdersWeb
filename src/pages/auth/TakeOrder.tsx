@@ -2,7 +2,14 @@ import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "@tanstack/react-router";
 import { fetchProducts, type Product } from "../../api/products";
-import { createOrder } from "../../api/orders";
+import {
+  createOrder,
+  fetchOrders,
+  payOrder,
+  updateOrderStatus,
+  type OrderItem,
+  type OrderStatus,
+} from "../../api/orders";
 import { router } from "../../router";
 import DeleteIcon from "@mui/icons-material/Delete";
 import {
@@ -18,31 +25,56 @@ import {
 } from "@mui/material";
 import { updateTableStatus } from "../../api/tables";
 import Products from "../../components/Products";
+import type { Order } from "../../components/TableCard";
+import { TakeOrderButtons } from "../../components/TakeOrderButtons";
+import { UpdateOrderStatusButtons } from "../../components/UpdateOrderButtons";
 
 export default function TakeOrder() {
   const { tableId } = useParams({ from: "/takeOrder/$tableId" });
   const queryClient = useQueryClient();
   const [totalPrice, setTotalPrice] = useState(0);
-  const [items, setItems] = useState<
-    { id: number; quantity: number; name: string; price: number }[]
-  >([]);
+  const [items, setItems] = useState<OrderItem[]>([]);
+  const { data: products, isLoading } = useQuery({
+    queryKey: ["products"],
+    queryFn: fetchProducts,
+  });
 
+  const { data: order } = useQuery({
+    queryKey: ["orders"],
+    queryFn: fetchOrders,
+    select: (orders) => orders.find((o: Order) => o.table === Number(tableId)),
+  });
+  const tableOrder = order as Order;
+  console.log("tableOrder", tableOrder);
+  useEffect(() => {
+    if (tableOrder?.products && items.length === 0) {
+      const initialItems = tableOrder.products.map((p: OrderItem) => ({
+        productId: p.productId,
+        quantity: p.quantity,
+        name: p.name,
+        price: p.price,
+      }));
+      setItems(initialItems);
+    }
+  }, [tableOrder, items.length]);
   const addItem = (id: number, name: string, price: number) => {
     setItems((prev) => {
-      const exist = prev.find((i) => i.id === id);
+      const exist = prev.find((i) => i.productId === id);
       if (exist) {
         return prev.map((i) =>
-          i.id === id ? { ...i, quantity: i.quantity + 1 } : i
+          i.productId === id ? { ...i, quantity: i.quantity + 1 } : i,
         );
       }
-      return [...prev, { id, quantity: 1, name, price }];
+      return [...prev, { productId: id, quantity: 1, name, price }];
     });
   };
   const removeItem = (id: number) => {
     setItems((prev) =>
       prev
-        .map((i) => (i.id === id ? { ...i, quantity: i.quantity - 1 } : i))
-        .filter((i) => i.quantity > 0)
+        .map((i) =>
+          i.productId === id ? { ...i, quantity: i.quantity - 1 } : i,
+        )
+        .filter((i) => i.quantity > 0),
     );
   };
   useEffect(() => {
@@ -50,17 +82,9 @@ export default function TakeOrder() {
     setTotalPrice(total);
   }, [items]);
 
-  const { data: products, isLoading } = useQuery({
-    queryKey: ["products"],
-    queryFn: fetchProducts,
-  });
-
-  const mutation = useMutation({
+  const mutationCreateOrder = useMutation({
     mutationFn: async () => {
-      await createOrder(
-        Number(tableId),
-        items.map((i) => i.id)
-      );
+      await createOrder(Number(tableId), items);
       await updateTableStatus(Number(tableId), "occupied");
     },
     onSuccess: async () => {
@@ -68,6 +92,43 @@ export default function TakeOrder() {
       setItems([]);
       await queryClient.invalidateQueries({ queryKey: ["orders"] });
       router.navigate({ to: `/tables` });
+    },
+  });
+
+  // const mutationUpdateOrder = useMutation({
+  //   mutationFn: async () => {
+  //     await updateOrder(
+  //       Number(tableId),
+  //       items.map((i) => i.id),
+  //     );
+  //     await updateOrderStatus(tableOrder.id, "pending");
+  //   },
+  //   onSuccess: async () => {
+  //     alert("Order updated!");
+  //     setItems([]);
+  //     await queryClient.invalidateQueries({ queryKey: ["orders"] });
+  //     router.navigate({ to: `/tables` });
+  //   },
+  // });
+  const mutationFinishOrder = useMutation({
+    mutationFn: async () => {
+      await payOrder(tableOrder.id);
+      //await deleteOrder(tableOrder.id); // Temporary: delete order when finished
+      await updateTableStatus(Number(tableId), "available");
+    },
+    onSuccess: async () => {
+      alert("Order finished!");
+      setItems([]);
+      await queryClient.invalidateQueries({ queryKey: ["orders"] });
+      router.navigate({ to: `/tables` });
+    },
+  });
+  const mutationStatusOrder = useMutation({
+    mutationFn: async (status: OrderStatus) => {
+      await updateOrderStatus(tableOrder.id, status);
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["orders"] });
     },
   });
 
@@ -84,9 +145,7 @@ export default function TakeOrder() {
       <Typography variant="h3" gutterBottom>
         Table {tableId}
       </Typography>
-
       <Products products={products} addItem={addItem} />
-
       <Paper
         elevation={3}
         sx={{
@@ -101,10 +160,12 @@ export default function TakeOrder() {
       >
         <List>
           {items.map((i) => {
-            const product = products?.find((p: Product) => p.id === i.id);
+            const product = products?.find(
+              (p: Product) => p.id === i.productId,
+            );
             return (
               <ListItem
-                key={i.id}
+                key={i.productId}
                 sx={{
                   borderBottom: "1px solid",
                   borderColor: "divider",
@@ -126,7 +187,7 @@ export default function TakeOrder() {
                       boxShadow: "0 8px 20px rgba(0,0,0,0.2)",
                     },
                   }}
-                  onClick={() => removeItem(i.id)}
+                  onClick={() => removeItem(i.productId)}
                 >
                   <DeleteIcon fontSize="small" />
                 </Button>
@@ -135,6 +196,7 @@ export default function TakeOrder() {
           })}
         </List>
       </Paper>
+      {/* Total price area */}
       <Grid container justifyContent="space-between" sx={{ mt: 2, mb: 3 }}>
         <Typography variant="h5" fontWeight={600}>
           Total:
@@ -143,45 +205,21 @@ export default function TakeOrder() {
           ${totalPrice.toFixed(2)}
         </Typography>
       </Grid>
-      <Grid container spacing={2} sx={{ mt: 2 }}>
-        <Button
-          variant="contained"
-          color="success"
-          fullWidth
-          onClick={() => mutation.mutate()}
-          disabled={mutation.isPending || items.length === 0}
-          sx={{
-            fontSize: "1.3rem",
-            fontWeight: "bold",
-            py: 1.5,
-            transition: "all 0.3s ease",
-            "&:hover": {
-              transform: "scale(1.05)",
-              boxShadow: "0 8px 20px rgba(0,0,0,0.2)",
-            },
-          }}
-        >
-          {mutation.isPending ? "Sending..." : "Send Order"}
-        </Button>
-        <Button
-          variant="contained"
-          color="error"
-          fullWidth
-          onClick={() => router.navigate({ to: `/tables` })}
-          sx={{
-            fontSize: "1rem",
-            fontWeight: "bold",
-            py: 1.5,
-            transition: "all 0.3s ease",
-            "&:hover": {
-              transform: "scale(1.05)",
-              boxShadow: "0 8px 20px rgba(0,0,0,0.2)",
-            },
-          }}
-        >
-          Cancel Order
-        </Button>
-      </Grid>
+      {tableOrder ? (
+        <UpdateOrderStatusButtons
+          mutation={mutationStatusOrder.mutate}
+          mutationFinish={mutationFinishOrder.mutate}
+          orderId={tableOrder.id}
+          isPending={mutationStatusOrder.isPending}
+          status={tableOrder.status as OrderStatus}
+        />
+      ) : (
+        <TakeOrderButtons
+          mutation={mutationCreateOrder.mutate}
+          items={items}
+          isPending={mutationCreateOrder.isPending}
+        />
+      )}
     </Container>
   );
 }
